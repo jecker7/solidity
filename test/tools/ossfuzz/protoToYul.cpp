@@ -311,7 +311,7 @@ void ProtoConverter::visit(ForStmt const& _x)
 	m_output << "for { let " << loopVarName << " := 0 } "
 		<< "lt(" << loopVarName << ", 0x100) "
 		<< "{ " << loopVarName << " := add(" << loopVarName << ", 0x20) } ";
-	visit(_x.for_body());
+	visit(_x.for_body(), true);
 	--m_numNestedForLoops;
 }
 
@@ -340,7 +340,7 @@ void ProtoConverter::visit(SwitchStmt const& _x)
 	}
 }
 
-void ProtoConverter::visit(Statement const& _x)
+void ProtoConverter::visit(Statement const& _x, bool _isFor)
 {
 	switch (_x.stmt_oneof_case())
 	{
@@ -365,19 +365,27 @@ void ProtoConverter::visit(Statement const& _x)
 		case Statement::kSwitchstmt:
 			visit(_x.switchstmt());
 			break;
+		case Statement::kBreakstmt:
+			if (_isFor)
+				m_output << "break\n";
+			break;
+		case Statement::kContstmt:
+			if (_isFor)
+				m_output << "continue\n";
+			break;
 		case Statement::STMT_ONEOF_NOT_SET:
 			break;
 	}
 }
 
-void ProtoConverter::visit(Block const& _x)
+void ProtoConverter::visit(Block const& _x, bool _isFor)
 {
 	if (_x.statements_size() > 0)
 	{
 		m_numVarsPerScope.push(0);
 		m_output << "{\n";
 		for (auto const& st: _x.statements())
-			visit(st);
+			visit(st, _isFor);
 		m_output << "}\n";
 		m_numLiveVars -= m_numVarsPerScope.top();
 		m_numVarsPerScope.pop();

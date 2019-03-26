@@ -51,7 +51,7 @@ public:
 
 private:
 	void visit(BinaryOp const&);
-	void visit(Block const&);
+	void visit(Block const&, bool _isFor = false);
 	void visit(Literal const&);
 	void visit(VarRef const&);
 	void visit(Expression const&);
@@ -61,13 +61,14 @@ private:
 	void visit(AssignmentStatement const&);
 	void visit(IfStmt const&);
 	void visit(StoreFunc const&);
-	void visit(Statement const&);
+	void visit(Statement const&, bool _isFor = false);
 	void visit(Function const&);
 	void visit(ForStmt const&);
 	void visit(CaseStmt const&);
 	void visit(SwitchStmt const&);
-	template <class T>
-	void visit(google::protobuf::RepeatedPtrField<T> const& _repeated_field);
+
+	template<typename T, typename... R>
+	void visit(google::protobuf::RepeatedPtrField<T> const& _repeated_field, R... _r);
 
 	std::string createHex(std::string const& _hexBytes) const;
 	std::string createAlphaNum(std::string const& _strBytes) const;
