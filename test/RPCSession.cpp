@@ -113,10 +113,12 @@ string IPCSocket::sendRequest(string const& _req)
 
 	return string(m_readBuf, m_readBuf + cbRead);
 #else
+	m_writ = chrono::steady_clock::now();
+
 	if (send(m_socket, _req.c_str(), _req.length(), 0) != (ssize_t)_req.length())
 		BOOST_FAIL("Writing on IPC failed.");
 
-	auto start = chrono::steady_clock::now();
+	m_recv = chrono::steady_clock::now();
 	ssize_t ret;
 	do
 	{
@@ -127,14 +129,24 @@ string IPCSocket::sendRequest(string const& _req)
 	}
 	while (
 		ret == 0 &&
-		chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start).count() < m_readTimeOutMS
+		chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - m_recv).count() < m_readTimeOutMS
 	);
 
 	if (ret == 0)
 		BOOST_FAIL("Timeout reading on IPC.");
 
+	m_fin = chrono::steady_clock::now();
+
 	return string(m_readBuf, m_readBuf + ret);
 #endif
+}
+
+void IPCSocket::printLastTimingValues() const
+{
+	cerr << "Sending duration: "
+		<< chrono::duration_cast<chrono::milliseconds>(m_writ - m_recv).count() << "ms" << endl
+		<< "Receiving duration: " <<
+		chrono::duration_cast<chrono::milliseconds>(m_fin -m_writ).count() << "ms" << endl;
 }
 
 RPCSession& RPCSession::instance(string const& _path)
@@ -351,7 +363,14 @@ Json::Value RPCSession::rpcCall(string const& _methodName, vector<string> const&
 	}
 
 	if (!result.isMember("result") || result["result"].isNull())
+	{
+		cerr << "Request was: " << request << endl
+			<< "Raw reply was: " << reply << endl;
+
+		m_ipcSocket.printLastTimingValues();
+
 		BOOST_FAIL("Missing result for JSON-RPC call: " + result.toStyledString());
+	}
 
 	return result["result"];
 }

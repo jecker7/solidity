@@ -35,6 +35,7 @@
 #include <string>
 #include <stdio.h>
 #include <map>
+#include <chrono>
 
 #if defined(_WIN32)
 class IPCSocket : public boost::noncopyable
@@ -63,9 +64,11 @@ public:
 	}
 
 	std::string const& path() const { return m_path; }
+	void printLastTimingValues() const;
 
 private:
 
+	std::chrono::steady_clock::time_point m_writ, m_recv, m_fin;
 	std::string m_path;
 	int m_socket;
 	/// Socket read timeout in milliseconds. Needs to be large because the key generation routine
