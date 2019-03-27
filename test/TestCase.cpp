@@ -47,6 +47,7 @@ string TestCase::parseSource(istream& _stream)
 	string line;
 	static string const delimiter("// ----");
 	static string const evmVersion("// EVMVersion: ");
+	static string const compileViaYul("// compileViaYul");
 	bool isTop = true;
 	while (getline(_stream, line))
 		if (boost::algorithm::starts_with(line, delimiter))
@@ -83,6 +84,8 @@ string TestCase::parseSource(istream& _stream)
 						break;
 				}
 			}
+			else if (isTop && boost::algorithm::starts_with(line, compileViaYul))
+				m_compileViaYul = true;
 			else
 				isTop = false;
 			source += line + "\n";

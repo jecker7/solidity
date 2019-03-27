@@ -94,8 +94,10 @@ protected:
 		while (_it != _end && *_it == '/')
 			++_it;
 	}
-private:
+
+protected:
 	std::vector<std::function<bool(langutil::EVMVersion)>> m_evmVersionRules;
+	bool m_compileViaYul = false;
 };
 
 }
