@@ -70,6 +70,8 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* _data, size_t _size)
 	ostringstream os1;
 	ostringstream os2;
 	yulFuzzerUtil::interpret(os1, stack.parserResult()->code);
+	if (os1.str().find("Interpreter execution step limit reached.") != std::string::npos)
+		return 0;
 	stack.optimize();
 	yulFuzzerUtil::interpret(os2, stack.parserResult()->code);
 

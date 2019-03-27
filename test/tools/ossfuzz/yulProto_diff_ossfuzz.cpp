@@ -69,6 +69,9 @@ DEFINE_PROTO_FUZZER(Function const& _input)
 	ostringstream os1;
 	ostringstream os2;
 	yulFuzzerUtil::interpret(os1, stack.parserResult()->code);
+	if (os1.str().find("Interpreter execution step limit reached.") != std::string::npos)
+		return;
+
 	stack.optimize();
 	yulFuzzerUtil::interpret(os2, stack.parserResult()->code);
 
