@@ -43,9 +43,8 @@ bool isTerminating(yul::ExpressionStatement const& _exprStmnt)
 }
 
 /// Returns an iterator to the first terminating statement or
-/// `_block.statements.end()` / `cend()` when none was found
-template <typename B>
-auto findFirstTerminatingStatement(B& _block)
+/// `_block.statements.end()()` when none was found
+auto findFirstTerminatingStatement(Block& _block)
 {
 	return find_if(
 		_block.statements.begin(),
@@ -66,29 +65,6 @@ auto findFirstTerminatingStatement(B& _block)
 		}
 	);
 }
-}
-
-bool DeadCodeEliminator::containsDeadCode(Block const& _block)
-{
-	m_found_dead_code = false;
-
-	(*this)(_block);
-
-	return m_found_dead_code;
-}
-
-void DeadCodeEliminator::operator()(Block const& _block)
-{
-	auto result = findFirstTerminatingStatement(_block);
-
-	if (result != _block.statements.cend() &&
-		result+1 != _block.statements.cend())
-	{
-		m_found_dead_code = true;
-		return;
-	}
-
-	ASTWalker::operator()(_block);
 }
 
 void DeadCodeEliminator::operator()(Block& _block)

@@ -28,7 +28,6 @@
 
 namespace yul
 {
-struct Dialect;
 
 /**
  * Optimisation stage that removes unreachable code
@@ -40,16 +39,11 @@ struct Dialect;
  * code and thus are considered reachable.
  *
  */
-class DeadCodeEliminator: public ASTModifier, private ASTWalker
+class DeadCodeEliminator: public ASTModifier
 {
 public:
 	using ASTModifier::operator();
 	void operator()(Block& _block) override;
-	bool containsDeadCode(Block const& _block);
-private:
-	bool m_found_dead_code = true;
-
-	void operator()(Block const& _block) override;
 };
 
 }

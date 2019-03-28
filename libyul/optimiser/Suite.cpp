@@ -71,10 +71,10 @@ void OptimiserSuite::run(
 	VarDeclInitializer{}(ast);
 	FunctionHoister{}(ast);
 	BlockFlattener{}(ast);
+	DeadCodeEliminator{}(ast);
 	FunctionGrouper{}(ast);
 	EquivalentFunctionCombiner::run(ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
-	DeadCodeEliminator{}(ast);
 	ForLoopInitRewriter{}(ast);
 	BlockFlattener{}(ast);
 	StructuralSimplifier{*_dialect}(ast);
@@ -109,13 +109,13 @@ void OptimiserSuite::run(
 			// still in SSA, perform structural simplification
 			StructuralSimplifier{*_dialect}(ast);
 			BlockFlattener{}(ast);
+			DeadCodeEliminator{}(ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
 		}
 		{
 			// simplify again
 			CommonSubexpressionEliminator{*_dialect}(ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
-			DeadCodeEliminator{}(ast);
 		}
 
 		{
@@ -161,13 +161,13 @@ void OptimiserSuite::run(
 			ExpressionSimplifier::run(*_dialect, ast);
 			StructuralSimplifier{*_dialect}(ast);
 			BlockFlattener{}(ast);
+			DeadCodeEliminator{}(ast);
 			CommonSubexpressionEliminator{*_dialect}(ast);
 			SSATransform::run(ast, dispenser);
 			RedundantAssignEliminator::run(*_dialect, ast);
 			RedundantAssignEliminator::run(*_dialect, ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
 			CommonSubexpressionEliminator{*_dialect}(ast);
-			DeadCodeEliminator{}(ast);
 		}
 	}
 
@@ -188,7 +188,6 @@ void OptimiserSuite::run(
 	ExpressionJoiner::run(ast);
 	Rematerialiser::run(*_dialect, ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
-	DeadCodeEliminator{}(ast);
 
 	// This is a tuning parameter, but actually just prevents infinite loops.
 	size_t stackCompressorMaxIterations = 16;
@@ -197,6 +196,7 @@ void OptimiserSuite::run(
 	// message once we perform code generation.
 	StackCompressor::run(_dialect, ast, _optimizeStackAllocation, stackCompressorMaxIterations);
 	BlockFlattener{}(ast);
+	DeadCodeEliminator{}(ast);
 
 	VarNameCleaner{ast, *_dialect, reservedIdentifiers}(ast);
 	yul::AsmAnalyzer::analyzeStrictAssertCorrect(_dialect, ast);
