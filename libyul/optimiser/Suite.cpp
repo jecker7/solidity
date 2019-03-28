@@ -23,6 +23,7 @@
 #include <libyul/optimiser/Disambiguator.h>
 #include <libyul/optimiser/VarDeclInitializer.h>
 #include <libyul/optimiser/BlockFlattener.h>
+#include <libyul/optimiser/DeadCodeEliminator.h>
 #include <libyul/optimiser/FunctionGrouper.h>
 #include <libyul/optimiser/FunctionHoister.h>
 #include <libyul/optimiser/EquivalentFunctionCombiner.h>
@@ -73,6 +74,7 @@ void OptimiserSuite::run(
 	FunctionGrouper{}(ast);
 	EquivalentFunctionCombiner::run(ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
+	DeadCodeEliminator{}(ast);
 	ForLoopInitRewriter{}(ast);
 	BlockFlattener{}(ast);
 	StructuralSimplifier{*_dialect}(ast);
@@ -113,6 +115,7 @@ void OptimiserSuite::run(
 			// simplify again
 			CommonSubexpressionEliminator{*_dialect}(ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
+			DeadCodeEliminator{}(ast);
 		}
 
 		{
@@ -164,6 +167,7 @@ void OptimiserSuite::run(
 			RedundantAssignEliminator::run(*_dialect, ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
 			CommonSubexpressionEliminator{*_dialect}(ast);
+			DeadCodeEliminator{}(ast);
 		}
 	}
 
@@ -184,6 +188,7 @@ void OptimiserSuite::run(
 	ExpressionJoiner::run(ast);
 	Rematerialiser::run(*_dialect, ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
+	DeadCodeEliminator{}(ast);
 
 	// This is a tuning parameter, but actually just prevents infinite loops.
 	size_t stackCompressorMaxIterations = 16;
